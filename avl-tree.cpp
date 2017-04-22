@@ -42,14 +42,14 @@ private:
   int getHeight(Node<T>* node) const;
   void rebalance(Node<T>* node);
   void rotate(Node<T>* parent);
-  void LLR(Node<T>* node);
-  void LRR(Node<T>* node);
-  void RRR(Node<T>* node);
-  void RLR(Node<T>* node);
+  void LLR(Node<T>* parent, Node<T>* node, Node<T>* child);
+  void LRR(Node<T>* parent, Node<T>* node, Node<T>* child);
+  void RRR(Node<T>* parent, Node<T>* node, Node<T>* child);
+  void RLR(Node<T>* parent, Node<T>* node, Node<T>* child);
   void printInOrder(Node<T>* node) const;
   void printPostOrder(Node<T>* node) const;
   void printPreOrder(Node<T>* node) const;
-  void printLevelOrder(Node<T>* node) const { printLevelOrder(root); }
+  void printLevelOrder(Node<T>* node) const;
   Node<T>* copy(Node<T>* rhs) const;
   void remove(Node<T>* node);
 
@@ -68,7 +68,7 @@ public:
   void printInOrder() const;
   void printPostOrder() const;
   void printPreOrder() const;
-  void printLevelOrder() const;
+  void printLevelOrder() const { printLevelOrder(root); }
   int getHeight() const { return getHeight(root); }
   int getSize() const { return size; }
 
@@ -84,7 +84,7 @@ int AVLTree<T>::setBalance(Node<T>* node){
 }
 
 template <class T>
-int AVLTree<T>::getHeight(Node<T>* node){
+int AVLTree<T>::getHeight(Node<T>* node) const{
   if (node == nullptr) return -1;
   return 1 + max(getHeight(node->left), getHeight(node->right));
 }
@@ -100,32 +100,33 @@ void AVLTree<T>::rebalance(Node<T>* node){
 }
 
 template <class T>
-void AVLTree<T>::rotate(Node<T>* parent){
-  Node<T>* node;
-  //heavier on the left side
-  if (parent->balanceFactor < -1){
-    node = parent->left;
-    setBalance(node);
-    //left right rotation!
-    if (node->balanceFactor == 1)
-      LRR(parent, node, node->right);
-    //left left rotation
+void AVLTree<T>::rotate(Node<T>* node){
+  Node<T>* child;
+  //node is heavier on the left side
+  if (node->balanceFactor < -1){
+    child = node->left;
+    setBalance(child);
+    //child is heavier on the right side
+    if (child->balanceFactor == 1)
+      LRR(node, child, child->right);
+    //child is either balanced or heavier on the left side
     else
-      LLR(parent, node, node->left);
+      LLR(node, child, child->left);
   }
-  //heavier on the right side
+  //node is heavier on the right side
   else {
-    node = parent->right;
-    setBalance(node);
-    //right left rotation
-    if (node->balanceFactor == -1)
-      RLR(parent, node, node->left);
-    //right right rotation!
+    child = node->right;
+    setBalance(child);
+    //child is heavier on the left side
+    if (child->balanceFactor == -1)
+      RLR(node, child, child->left);
+    //child is either balanced or heavier on the right side
     else
-      RRR(parent, node, node->right);
+      RRR(node, child, child->right);
   }
 }
 
+//left left rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
 template <class T>
 void AVLTree<T>::LLR(Node<T>* parent, Node<T>* node, Node<T>* child){
   Node<T>* grandParent = parent->parent;
@@ -135,23 +136,22 @@ void AVLTree<T>::LLR(Node<T>* parent, Node<T>* node, Node<T>* child){
   node->right = parent;
   parent->parent = node;
   parent->left = nodeRight;
-  if (grandParent == nullptr){
+  if (grandParent == nullptr)
     root = node;
-  }
-  else if (grandParent->left == parent){
+  else if (grandParent->left == parent)
     grandParent->left = node;
-  }
-  else {
+  else 
     grandParent->right = node;
-  }
 }
 
+//left right rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
 template <class T>
 void AVLTree<T>::LRR(Node<T>* parent, Node<T>* node, Node<T>* child){
   RRR(node, child, child->right);
   LLR(parent, child, node);
 }
 
+//right right rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
 template <class T>
 void AVLTree<T>::RRR(Node<T>* parent, Node<T>* node, Node<T>* child){
   Node<T>* grandParent = parent->parent;
@@ -161,18 +161,15 @@ void AVLTree<T>::RRR(Node<T>* parent, Node<T>* node, Node<T>* child){
   node->left = parent;
   parent->parent = node;
   parent->right = nodeLeft;
-  //we are rotating with respect to root, so the root needs to be updated!
-  if (grandParent == nullptr){
+  if (grandParent == nullptr)
     root = node;
-  }
-  else if (grandParent->left == parent){
+  else if (grandParent->left == parent)
     grandParent->left = node;
-  }
-  else {
+  else
     grandParent->right = node;
-  }
 }
 
+//right left rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
 template <class T>
 void AVLTree<T>::RLR(Node<T>* parent, Node<T>* node, Node<T>* child){
   LLR(node, child, child->left);
@@ -385,3 +382,4 @@ void AVLTree<T>::printPreOrder() const {
   printPreOrder(root);
   cout << endl;
 }
+
