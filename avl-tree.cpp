@@ -109,7 +109,7 @@ void AVLTree<T>::rotate(Node<T>* node){
     //child is heavier on the right side
     if (child->balanceFactor == 1)
       LRR(node, child, child->right);
-    //child is either balanced or heavier on the left side
+    //child is heavier on the left side
     else
       LLR(node, child, child->left);
   }
@@ -120,13 +120,13 @@ void AVLTree<T>::rotate(Node<T>* node){
     //child is heavier on the left side
     if (child->balanceFactor == -1)
       RLR(node, child, child->left);
-    //child is either balanced or heavier on the right side
+    //child heavier on the right side
     else
       RRR(node, child, child->right);
   }
 }
 
-//left left rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
+//left left rotation where parent node is the node with a bad balance factor (>= 1 || <= -1)
 template <class T>
 void AVLTree<T>::LLR(Node<T>* parent, Node<T>* node, Node<T>* child){
   Node<T>* grandParent = parent->parent;
@@ -144,14 +144,14 @@ void AVLTree<T>::LLR(Node<T>* parent, Node<T>* node, Node<T>* child){
     grandParent->right = node;
 }
 
-//left right rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
+//left right rotation where parent node is the node with a bad balance factor (>= 1 || <= -1)
 template <class T>
 void AVLTree<T>::LRR(Node<T>* parent, Node<T>* node, Node<T>* child){
   RRR(node, child, child->right);
   LLR(parent, child, node);
 }
 
-//right right rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
+//right right rotation where parent node is the node with a bad balance factor (>= 1 || <= -1)
 template <class T>
 void AVLTree<T>::RRR(Node<T>* parent, Node<T>* node, Node<T>* child){
   Node<T>* grandParent = parent->parent;
@@ -169,7 +169,7 @@ void AVLTree<T>::RRR(Node<T>* parent, Node<T>* node, Node<T>* child){
     grandParent->right = node;
 }
 
-//right left rotation where parent node is the node with a bad balance factor (>= 1 & <= -1)
+//right left rotation where parent node is the node with a bad balance factor (>= 1 || <= -1)
 template <class T>
 void AVLTree<T>::RLR(Node<T>* parent, Node<T>* node, Node<T>* child){
   LLR(node, child, child->left);
@@ -244,6 +244,7 @@ void AVLTree<T>::remove(Node<T>* node){
 
   Node<T>* parent = node->parent;
 
+  //removing a leaf
   if (node->left == nullptr && node->right == nullptr){
     if (parent == nullptr) 
       root = nullptr;
@@ -256,6 +257,7 @@ void AVLTree<T>::remove(Node<T>* node){
     size--;
   }
 
+  //removing a node with only a left child
   else if (node->right == nullptr){
     if (parent == nullptr){
       root = node->left;
@@ -274,6 +276,7 @@ void AVLTree<T>::remove(Node<T>* node){
     size--;
   }
 
+  //removing a node with only a right child
   else if (node->left == nullptr){
     if (parent == nullptr){
       root = node->right;
@@ -292,6 +295,9 @@ void AVLTree<T>::remove(Node<T>* node){
     size--;
   }
 
+  //removing a node with two children
+  //swap data with the sucessor (right child's left most child) 
+  //and make a recursive call to remove the sucessor node
   else {
     Node<T>* temp = node->right;
     while (temp->left != nullptr)
